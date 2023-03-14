@@ -1,5 +1,7 @@
 import pygame
 import entities
+import debug
+import physics
 from pygame.locals import *
 
 
@@ -19,6 +21,9 @@ def main():
     tiles = []
     for i in range(10):
         tiles.append(entities.Tile(i * 64, 200))
+    
+    for i in range(10):
+        tiles.append(entities.Tile(i * 64 + 200, 400))
         
     tiles.append(entities.Tile(6 * 64, 200 - 64))
 
@@ -30,9 +35,17 @@ def main():
 
 
     screen = pygame.display.set_mode((1000, 800))
+    clock = pygame.time.Clock()
     run = True
 
+    FPS = 60
+    dt = 1 # 
+    physicsSubSteps = 1
+    subStepDt = dt / physicsSubSteps
+
     while run:
+
+        clock.tick(FPS)
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -45,8 +58,9 @@ def main():
 
         player.handleInputs(keys)
 
-        for sprite in kinematicGroup.sprites():
-            sprite.update(0.05, collisionGroup)
+        for sprite in kinematicGroup.sprites():            
+            for i in range(physicsSubSteps):
+                sprite.update(subStepDt, collisionGroup)
 
         screen.fill((0,0,0))
 
@@ -54,7 +68,12 @@ def main():
 
         pygame.draw.line(screen, (255,255,255), (player.rect.centerx + -5, player.rect.centery), (player.rect.centerx + -5 + player.acc[0], player.rect.centery + player.acc[1]))
         pygame.draw.line(screen, (255,255,255), (player.rect.centerx + 5, player.rect.centery), (player.rect.centerx + 5 + player.vel[0], player.rect.centery + player.vel[1]))
-
+        pygame.draw.circle(screen, (255, 255, 255), (player.leftOnGroundPoint), 2)
+        pygame.draw.circle(screen, (255, 255, 255), (player.rightOnGroundPoint), 2)
+        debug.printToScreen(screen, "On Ground? : " + str(player.onGround), (10, 100))
+        debug.printToScreen(screen, "Player Position : " + str(player.x) + ", " + str(player.y), (10, 25))
+        debug.printToScreen(screen, "Player Velocity : " + str(player.vel), (10, 50))
+        debug.printToScreen(screen, "Player Acceleration : " + str(player.acc), (10, 75))
         pygame.display.update()
 
     pygame.quit()
